@@ -1,37 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 library ABDKMathQuad {
-    /*
-     * 0.
-     */
     bytes16 private constant POSITIVE_ZERO = 0x00000000000000000000000000000000;
-
-    /*
-     * -0.
-     */
     bytes16 private constant NEGATIVE_ZERO = 0x80000000000000000000000000000000;
-
-    /*
-     * +Infinity.
-     */
     bytes16 private constant POSITIVE_INFINITY = 0x7FFF0000000000000000000000000000;
-
-    /*
-     * -Infinity.
-     */
     bytes16 private constant NEGATIVE_INFINITY = 0xFFFF0000000000000000000000000000;
-
-    /*
-     * Canonical NaN value.
-     */
     bytes16 private constant NaN = 0x7FFF8000000000000000000000000000;
 
-    /**
-     * Convert unsigned 256-bit integer number into quadruple precision number.
-     *
-     * @param x unsigned 256-bit integer number
-     * @return quadruple precision number
-     */
     function fromUInt (uint256 x) internal pure returns (bytes16) {
     unchecked {
         if (x == 0) return bytes16 (0);
@@ -49,15 +24,6 @@ library ABDKMathQuad {
     }
     }
 
-    /**
-     * Convert quadruple precision number into unsigned 256-bit integer number
-     * rounding towards zero.  Revert on underflow.  Note, that negative floating
-     * point numbers in range (-1.0 .. 0.0) may be converted to unsigned integer
-     * without error, because they are rounded to zero.
-     *
-     * @param x quadruple precision number
-     * @return unsigned 256-bit integer number
-     */
     function toUInt (bytes16 x) internal pure returns (uint256) {
     unchecked {
         uint256 exponent = uint128 (x) >> 112 & 0x7FFF;
@@ -77,25 +43,6 @@ library ABDKMathQuad {
     }
     }
 
-    /**
-     * Calculate x * y.  Special values behave in the following way:
-     *
-     * NaN * x = NaN for any x.
-     * Infinity * x = Infinity for any finite positive x.
-     * Infinity * x = -Infinity for any finite negative x.
-     * -Infinity * x = -Infinity for any finite positive x.
-     * -Infinity * x = Infinity for any finite negative x.
-     * Infinity * 0 = NaN.
-     * -Infinity * 0 = NaN.
-     * Infinity * Infinity = Infinity.
-     * Infinity * -Infinity = -Infinity.
-     * -Infinity * Infinity = -Infinity.
-     * -Infinity * -Infinity = Infinity.
-     *
-     * @param x quadruple precision number
-     * @param y quadruple precision number
-     * @return quadruple precision number
-     */
     function mul (bytes16 x, bytes16 y) internal pure returns (bytes16) {
     unchecked {
         uint256 xExponent = uint128 (x) >> 112 & 0x7FFF;
@@ -163,40 +110,6 @@ library ABDKMathQuad {
     }
     }
 
-    /**
-     * Calculate x / y.  Special values behave in the following way:
-     *
-     * NaN / x = NaN for any x.
-     * x / NaN = NaN for any x.
-     * Infinity / x = Infinity for any finite non-negative x.
-     * Infinity / x = -Infinity for any finite negative x including -0.
-     * -Infinity / x = -Infinity for any finite non-negative x.
-     * -Infinity / x = Infinity for any finite negative x including -0.
-     * x / Infinity = 0 for any finite non-negative x.
-     * x / -Infinity = -0 for any finite non-negative x.
-     * x / Infinity = -0 for any finite non-negative x including -0.
-     * x / -Infinity = 0 for any finite non-negative x including -0.
-     *
-     * Infinity / Infinity = NaN.
-     * Infinity / -Infinity = -NaN.
-     * -Infinity / Infinity = -NaN.
-     * -Infinity / -Infinity = NaN.
-     *
-     * Division by zero behaves in the following way:
-     *
-     * x / 0 = Infinity for any finite positive x.
-     * x / -0 = -Infinity for any finite positive x.
-     * x / 0 = -Infinity for any finite negative x.
-     * x / -0 = Infinity for any finite negative x.
-     * 0 / 0 = NaN.
-     * 0 / -0 = NaN.
-     * -0 / 0 = NaN.
-     * -0 / -0 = NaN.
-     *
-     * @param x quadruple precision number
-     * @param y quadruple precision number
-     * @return quadruple precision number
-     */
     function div (bytes16 x, bytes16 y) internal pure returns (bytes16) {
     unchecked {
         uint256 xExponent = uint128 (x) >> 112 & 0x7FFF;
@@ -271,13 +184,6 @@ library ABDKMathQuad {
     }
     }
 
-    /**
-   * Get index of the most significant non-zero bit in binary representation of
-   * x.  Reverts if x is zero.
-   *
-   * @return index of the most significant non-zero bit in binary representation
-   *         of x
-   */
     function mostSignificantBit (uint256 x) private pure returns (uint256) {
     unchecked {
         require (x > 0);

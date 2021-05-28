@@ -22,7 +22,7 @@ async function main() {
     await deployedContract.deployed();
 
     const pairAddress = await deployedContract.getCurrentPrice('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', '0xe9e7cea3dedca5984780bafc599bd69add087d56');
-    console.log('Pair Address', buildBalanceTransformer(new BigNumber(pairAddress.toString()), 18).toString())
+    console.log('Result', buildBalanceTransformer(new BigNumber(pairAddress[0].toString()), pairAddress[2]).toString(), pairAddress[1], pairAddress[2]);
     console.log("Token address:", deployedContract.address);
 }
 
