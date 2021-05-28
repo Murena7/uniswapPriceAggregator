@@ -9,7 +9,7 @@
     "test": "npx hardhat test",
     "node": "npx hardhat node",
     "script": "ts-node scripts/sample-script.ts",
-    "deploy-test": "ts-node --network HTTP://127.0.0.1:7555 scripts/deploy-test1.ts",
+    "deploy-test": "npx hardhat run --network hardhat scripts/deploy-test1.ts",
     "help": "npm hardhat help"
   },
   "author": "",
@@ -29,5 +29,9 @@
     "ts-node": "^10.0.0",
     "typescript": "^4.3.2",
     "web3": "^1.3.6"
+  },
+  "dependencies": {
+    "@uniswap/lib": "^4.0.1-alpha",
+    "bignumber.js": "^9.0.1"
   }
 }
