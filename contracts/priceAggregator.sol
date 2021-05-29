@@ -13,6 +13,21 @@ contract PriceAggregator {
     address public factoryAddress = 0xBCfCcbde45cE874adCB698cC183deBcF17952812;
     IUniswapV2Factory factoryContract = IUniswapV2Factory(factoryAddress);
 
+    function getCurrentPriceArr(address[] memory _sendTokens, address[] memory _receiveTokens) public view returns (uint256[] memory, string[] memory, uint8[] memory) {
+        uint256[] memory amounts = new uint256[](_sendTokens.length);
+        string[] memory symbols = new string[](_sendTokens.length);
+        uint8[] memory decimals = new uint8[](_sendTokens.length);
+
+        for (uint i=0; i < _sendTokens.length; i++) {
+            (uint256 amount, string memory symbol, uint8 decimal) = getCurrentPrice(_sendTokens[i], _receiveTokens[i]);
+            amounts[i] = amount;
+            symbols[i] = symbol;
+            decimals[i] = decimal;
+        }
+
+        return (amounts, symbols, decimals);
+    }
+
     function getCurrentPrice(address _sendToken, address _receiveToken) public view returns (uint256, string memory, uint8) {
         address pairAddress = factoryContract.getPair(_sendToken, _receiveToken);
 
