@@ -10,7 +10,7 @@ import "./helpers/ABDKMathQuad.sol";
 import "hardhat/console.sol";
 
 contract PriceAggregator {
-    address public factoryAddress = 0xBCfCcbde45cE874adCB698cC183deBcF17952812;
+    address public factoryAddress = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
     IUniswapV2Factory factoryContract = IUniswapV2Factory(factoryAddress);
 
     struct TokenHelper {
@@ -64,18 +64,20 @@ contract PriceAggregator {
         bytes16 divisor = ABDKMathQuad.fromUInt(10**token0.decimals);
         return ABDKMathQuad.toUInt(
                 ABDKMathQuad.mul(ABDKMathQuad.div(
-                    decimalNumberShifter(token0.reserve, token0.decimals, token1.decimals), token1.reserve)
+                    token0.reserve, decimalNumberShifter(token1.reserve, token1.decimals, token0.decimals))
                 , divisor)
                );
     }
 
-    function decimalNumberShifter(bytes16 number, uint8 decimal1, uint8 decimal2) internal view returns(bytes16) {
-        if(decimal1 > decimal2) {
-            return ABDKMathQuad.mul(number, ABDKMathQuad.fromUInt(10**decimal1));
-        } else if(decimal1 < decimal2)  {
-            return ABDKMathQuad.div(number, ABDKMathQuad.fromUInt(10**decimal1));
+    function decimalNumberShifter(bytes16 number0, uint8 decimal0, uint8 decimal1) internal view returns(bytes16) {
+        if(decimal0 < decimal1) {
+            uint8 shiftDecimal = decimal1 - decimal0;
+            return ABDKMathQuad.mul(number0, ABDKMathQuad.fromUInt(10**shiftDecimal));
+        } else if(decimal0 > decimal1)  {
+            uint8 shiftDecimal = decimal0 - decimal1;
+            return ABDKMathQuad.div(number0, ABDKMathQuad.fromUInt(10**shiftDecimal));
         } else {
-            return number;
+            return number0;
         }
     }
 }

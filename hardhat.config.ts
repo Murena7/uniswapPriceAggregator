@@ -19,7 +19,7 @@ export default {
   networks: {
     hardhat: {
       forking: {
-        url: "https://bsc-dataseed1.binance.org"
+        url: process.env.NETWORK_URL
       }
     },
     ganacheTest: {
