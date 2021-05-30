@@ -7,8 +7,6 @@ import "./interfaces/IERC20.sol";
 
 import "./helpers/ABDKMathQuad.sol";
 
-import "hardhat/console.sol";
-
 contract PriceAggregator {
     address public owner;
     bool public paused;
