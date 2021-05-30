@@ -10,8 +10,13 @@ import "./helpers/ABDKMathQuad.sol";
 import "hardhat/console.sol";
 
 contract PriceAggregator {
+    address public owner;
+    bool public paused;
     address public factoryAddress = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
-    IUniswapV2Factory factoryContract = IUniswapV2Factory(factoryAddress);
+
+    constructor() {
+        owner = msg.sender;
+    }
 
     struct TokenHelper {
         bytes16 reserve;
@@ -20,23 +25,48 @@ contract PriceAggregator {
         uint8 decimals;
     }
 
-    function getCurrentPriceArr(address[] memory _sendTokens, address[] memory _receiveTokens) public view returns (uint256[] memory, string[] memory, uint8[] memory) {
-        uint256[] memory amounts = new uint256[](_sendTokens.length);
-        string[] memory symbols = new string[](_sendTokens.length);
-        uint8[] memory decimals = new uint8[](_sendTokens.length);
-
-        for (uint i=0; i < _sendTokens.length; i++) {
-            (uint256 amount, string memory symbol, uint8 decimal) = getCurrentPrice(_sendTokens[i], _receiveTokens[i]);
-            amounts[i] = amount;
-            symbols[i] = symbol;
-            decimals[i] = decimal;
-        }
-
-        return (amounts, symbols, decimals);
+    struct PriceResult {
+        address send;
+        address get;
+        uint256 getPrice;
+        string getSymbol;
+        uint8 getDecimal;
+        bool status;
     }
 
-    function getCurrentPrice(address _sendToken, address _receiveToken) public view returns (uint256, string memory, uint8) {
-        address pairAddress = factoryContract.getPair(_sendToken, _receiveToken);
+    function setFactoryAddress(address value) public onlyOwner {
+        factoryAddress = value;
+    }
+
+    function setPaused(bool _paused) public onlyOwner {
+        paused = _paused;
+    }
+
+    function destroySmartContract(address payable _to) public onlyOwner {
+        selfdestruct(_to);
+    }
+
+    function getCurrentPriceArr(address[] memory _sendTokens, address[] memory _getTokens) public view isPaused returns (PriceResult[] memory) {
+        PriceResult[] memory results = new PriceResult[](_sendTokens.length);
+
+        for (uint i=0; i < _sendTokens.length; i++) {
+            results[i] = getCurrentPrice(_sendTokens[i], _getTokens[i]);
+        }
+
+        return results;
+    }
+
+    function getCurrentPrice(address _sendToken, address _getToken) public view isPaused returns (PriceResult memory) {
+        IUniswapV2Factory factoryContract = IUniswapV2Factory(factoryAddress);
+        address pairAddress = factoryContract.getPair(_sendToken, _getToken);
+
+        if(pairAddress == 0x0000000000000000000000000000000000000000) {
+            PriceResult memory errorResult;
+            errorResult.send = _sendToken;
+            errorResult.get = _getToken;
+            return errorResult;
+        }
+
         IUniswapV2Pair pairContract = IUniswapV2Pair(pairAddress);
 
         (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) = pairContract.getReserves();
@@ -54,13 +84,13 @@ contract PriceAggregator {
         token1.decimals = token1.contractInstance.decimals();
 
         if (_sendToken == token0.tokenAddress) {
-            return (valueCalculations(token1, token0), token1.contractInstance.symbol(), token1.decimals);
+            return PriceResult(_sendToken, _getToken, valueCalculations(token1, token0), token1.contractInstance.symbol(), token1.decimals, true);
         } else {
-            return (valueCalculations(token0, token1) , token0.contractInstance.symbol(),  token0.decimals);
+            return PriceResult(_sendToken, _getToken, valueCalculations(token0, token1) , token0.contractInstance.symbol(),  token0.decimals, true);
         }
     }
 
-    function valueCalculations(TokenHelper memory token0, TokenHelper memory token1) internal view returns(uint256) {
+    function valueCalculations(TokenHelper memory token0, TokenHelper memory token1) internal pure returns(uint256) {
         bytes16 divisor = ABDKMathQuad.fromUInt(10**token0.decimals);
         return ABDKMathQuad.toUInt(
                 ABDKMathQuad.mul(ABDKMathQuad.div(
@@ -69,7 +99,7 @@ contract PriceAggregator {
                );
     }
 
-    function decimalNumberShifter(bytes16 number0, uint8 decimal0, uint8 decimal1) internal view returns(bytes16) {
+    function decimalNumberShifter(bytes16 number0, uint8 decimal0, uint8 decimal1) internal pure returns(bytes16) {
         if(decimal0 < decimal1) {
             uint8 shiftDecimal = decimal1 - decimal0;
             return ABDKMathQuad.mul(number0, ABDKMathQuad.fromUInt(10**shiftDecimal));
@@ -79,5 +109,15 @@ contract PriceAggregator {
         } else {
             return number0;
         }
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "You are not allowed");
+        _;
+    }
+
+    modifier isPaused() {
+        require(paused == false, "Contract Paused");
+        _;
     }
 }
