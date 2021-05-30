@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
+import "hardhat-abi-exporter";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -27,5 +28,11 @@ export default {
       url: "http://127.0.0.1:7555",
       accounts: [process.env.ACCOUNT],
     }
+  },
+  abiExporter: {
+    path: './abi',
+    clear: true,
+    flat: true,
+    spacing: 2
   }
 };

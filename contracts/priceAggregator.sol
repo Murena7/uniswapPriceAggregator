@@ -10,7 +10,7 @@ import "./helpers/ABDKMathQuad.sol";
 contract PriceAggregator {
     address public owner;
     bool public paused;
-    address public factoryAddress = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
+    address public factoryAddress = 0xBCfCcbde45cE874adCB698cC183deBcF17952812;
 
     constructor() {
         owner = msg.sender;
