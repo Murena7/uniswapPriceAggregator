@@ -18,6 +18,11 @@ contract PriceAggregator {
         owner = msg.sender;
     }
 
+    struct checkToken {
+        address sendToken;
+        address getToken;
+    }
+
     struct TokenHelper {
         bytes16 reserve;
         address tokenAddress;
@@ -46,24 +51,24 @@ contract PriceAggregator {
         selfdestruct(_to);
     }
 
-    function getCurrentPriceArr(address[] memory _sendTokens, address[] memory _getTokens) public view isPaused returns (PriceResult[] memory) {
-        PriceResult[] memory results = new PriceResult[](_sendTokens.length);
+    function getCurrentPriceArr(checkToken[] memory _inputDataArr) public view isPaused returns (PriceResult[] memory) {
+        PriceResult[] memory results = new PriceResult[](_inputDataArr.length);
 
-        for (uint i=0; i < _sendTokens.length; i++) {
-            results[i] = getCurrentPrice(_sendTokens[i], _getTokens[i]);
+        for (uint i=0; i < _inputDataArr.length; i++) {
+            results[i] = getCurrentPrice(_inputDataArr[i]);
         }
 
         return results;
     }
 
-    function getCurrentPrice(address _sendToken, address _getToken) public view isPaused returns (PriceResult memory) {
+    function getCurrentPrice(checkToken memory _inputData) public view isPaused returns (PriceResult memory) {
         IUniswapV2Factory factoryContract = IUniswapV2Factory(factoryAddress);
-        address pairAddress = factoryContract.getPair(_sendToken, _getToken);
+        address pairAddress = factoryContract.getPair(_inputData.sendToken, _inputData.getToken);
 
         if(pairAddress == 0x0000000000000000000000000000000000000000) {
             PriceResult memory errorResult;
-            errorResult.send = _sendToken;
-            errorResult.get = _getToken;
+            errorResult.send = _inputData.sendToken;
+            errorResult.get = _inputData.getToken;
             return errorResult;
         }
 
@@ -83,10 +88,10 @@ contract PriceAggregator {
         token1.contractInstance = IERC20(token1.tokenAddress);
         token1.decimals = token1.contractInstance.decimals();
 
-        if (_sendToken == token0.tokenAddress) {
-            return PriceResult(_sendToken, _getToken, valueCalculations(token1, token0), token1.contractInstance.symbol(), token1.decimals, true);
+        if (_inputData.sendToken == token0.tokenAddress) {
+            return PriceResult(_inputData.sendToken, _inputData.getToken, valueCalculations(token1, token0), token1.contractInstance.symbol(), token1.decimals, true);
         } else {
-            return PriceResult(_sendToken, _getToken, valueCalculations(token0, token1) , token0.contractInstance.symbol(),  token0.decimals, true);
+            return PriceResult(_inputData.sendToken, _inputData.getToken, valueCalculations(token0, token1) , token0.contractInstance.symbol(),  token0.decimals, true);
         }
     }
 
