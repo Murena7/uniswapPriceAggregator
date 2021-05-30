@@ -72,7 +72,7 @@ contract PriceAggregator {
 
         IUniswapV2Pair pairContract = IUniswapV2Pair(pairAddress);
 
-        (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) = pairContract.getReserves();
+        (uint112 _reserve0, uint112 _reserve1, ) = pairContract.getReserves();
 
         TokenHelper memory token0;
         token0.reserve = ABDKMathQuad.fromUInt(_reserve0);
